@@ -8,10 +8,11 @@ from core.prompt.utils.get_thread_messages_length import get_thread_messages_len
 
 
 class MockMessage:
-    def __init__(self, id, parent_message_id, answer="answer"):
+    def __init__(self, id, parent_message_id, answer="answer", answer_tokens=0):
         self.id = id
         self.parent_message_id = parent_message_id
         self.answer = answer
+        self.answer_tokens = answer_tokens
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -132,5 +133,20 @@ def test_get_thread_messages_length_keeps_non_empty_latest_answer(mocker: Mocker
     mock_scalars.return_value.all.return_value = messages
 
     length = get_thread_messages_length("conversation-2")
+
+    assert length == 2
+
+
+def test_get_thread_messages_length_keeps_in_progress_latest_answer(mocker: MockerFixture):
+    id1, id2 = str(uuid4()), str(uuid4())
+    messages = [
+        MockMessage(id2, id1, answer="", answer_tokens=12),
+        MockMessage(id1, UUID_NIL, answer="older-answer"),
+    ]
+
+    mock_scalars = mocker.patch("core.prompt.utils.get_thread_messages_length.db.session.scalars")
+    mock_scalars.return_value.all.return_value = messages
+
+    length = get_thread_messages_length("conversation-3")
 
     assert length == 2

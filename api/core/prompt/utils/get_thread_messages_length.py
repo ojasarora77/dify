@@ -17,8 +17,8 @@ def get_thread_messages_length(conversation_id: str) -> int:
     # Extract thread messages
     thread_messages = extract_thread_messages(messages)
 
-    # Exclude the newly created message with an empty answer
-    if thread_messages and not thread_messages[0].answer:
+    # Exclude the newly created message with an empty answer and no generated tokens yet
+    if thread_messages and not thread_messages[0].answer and thread_messages[0].answer_tokens == 0:
         thread_messages.pop(0)
 
     return len(thread_messages)
